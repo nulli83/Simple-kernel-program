@@ -7,7 +7,7 @@
 void WriteDriverFromResource() {
     HRSRC hRes = FindResource(NULL, "driver", RT_RCDATA);
     if (!hRes) {
-        printf("Kunde inte hitta resursen!\n");
+        printf("Could not find resource!\n");
         return;
     }
     HGLOBAL hResLoad = LoadResource(NULL, hRes);
@@ -18,30 +18,30 @@ void WriteDriverFromResource() {
     DWORD size = SizeofResource(NULL, hRes);
     LPVOID pDriver = LockResource(hResLoad);
     if (!pDriver) {
-        printf("Kunde inte låsa resursen!\n");
+        printf("Kunde inte lÃ¥sa resursen!\n");
         return;
     }
 
     HANDLE hFile = CreateFileA(DRIVER_PATH, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf("Kunde inte skapa filen %s\n", DRIVER_PATH);
+        printf("Could not create the file%s\n", DRIVER_PATH);
         return;
     }
 
     DWORD written;
     if (!WriteFile(hFile, pDriver, size, &written, NULL) || written != size) {
-        printf("Misslyckades skriva drivrutinen till disk!\n");
+        printf("Could not write driver to drive!\n");
         CloseHandle(hFile);
         return;
     }
     CloseHandle(hFile);
-    printf("Drivrutinen sparad till %s\n", DRIVER_PATH);
+    printf("Driver saved to %s\n", DRIVER_PATH);
 }
 
 void LoadDriver() {
     SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
     if (!hSCM) {
-        printf("Misslyckades öppna SCM (%lu)\n", GetLastError());
+        printf("Failed open SCM (%lu)\n", GetLastError());
         return;
     }
 
@@ -60,13 +60,13 @@ void LoadDriver() {
         if (err == ERROR_SERVICE_EXISTS) {
             hService = OpenServiceA(hSCM, DRIVER_NAME, SERVICE_START);
             if (!hService) {
-                printf("Misslyckades öppna tjänst (%lu)\n", GetLastError());
+                printf("failed opening process (%lu)\n", GetLastError());
                 CloseServiceHandle(hSCM);
                 return;
             }
         }
         else {
-            printf("Misslyckades skapa tjänst (%lu)\n", err);
+            printf("Failed create service (%lu)\n", err);
             CloseServiceHandle(hSCM);
             return;
         }
@@ -75,7 +75,7 @@ void LoadDriver() {
     if (!StartService(hService, 0, NULL)) {
         DWORD err = GetLastError();
         if (err != ERROR_SERVICE_ALREADY_RUNNING) {
-            printf("Misslyckades starta tjänst (%lu)\n", err);
+            printf("Failed start service (%lu)\n", err);
             CloseServiceHandle(hService);
             CloseServiceHandle(hSCM);
             return;
@@ -89,10 +89,10 @@ void LoadDriver() {
 
 void Cleanup() {
     if (!DeleteFileA(DRIVER_PATH)) {
-        printf("Misslyckades radera drivrutinen (%lu)\n", GetLastError());
+        printf("Failed to remove drive (%lu)\n", GetLastError());
     }
     else {
-        printf("Drivrutin raderad.\n");
+        printf("Drive removed.\n");
     }
 }
 
